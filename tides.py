@@ -108,9 +108,9 @@ def readcte(lat=None,dt=None):
     if lat is None:
         lat = 50
 
-    # read simple text file
-    # PROBABLY NEED TO CHANGE THE PATH TO THIS FILE
-    fdir = os.path.join(os.environ['DATA'],'TIDES')
+    # read text file with data
+    #fdir = os.path.join(os.environ['DATA'],'TIDES')
+    fdir,trash = os.path.split(__file__)
     fname = 'Cartwright_Edden_Table.csv'
     fname = os.path.join(fdir,fname)
     vl=np.loadtxt(fname,delimiter=',',dtype=float)
@@ -155,7 +155,8 @@ def readcte(lat=None,dt=None):
             # coefficient
             lgf = sph_harm(od,dg,0,colat)
             
-            # because the reference differs from the normalization for odd degrees
+            # because the reference differs from the normalization 
+            # for odd degrees
             lgf = lgf * (-1)**od
 
             # add this normalization to the relevant values
@@ -164,7 +165,8 @@ def readcte(lat=None,dt=None):
 
 
     # return the set as a dictionary for simplicity
-    tdvl = {'amp': amp,'ampu': ampu,'freqs': freqs,'dnum':dn,'degs':n,'lat':lat,'dtref':dt}
+    tdvl = {'amp': amp,'ampu': ampu,'freqs': freqs,'dnum':dn,
+            'degs':n,'lat':lat,'dtref':dt}
     return tdvl
 
 
