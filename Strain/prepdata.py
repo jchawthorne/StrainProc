@@ -2,7 +2,6 @@ import os
 import numpy.ma as ma
 import tides
 import math
-import strainproc as sp
 import matplotlib.pyplot as plt
 import numpy as np
 import obspy
