@@ -36,12 +36,7 @@ def readcalib(stn,ctyp='HodgkinsonPBO'):
     """
 
     # file to read
-
-    # fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-    #                    ctyp,'calibmatwhead')
-    # fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-    #                    ctyp,stn)
-    fdir,trash=os.path.split(__file__)
+    fdir = os.environ['STRAINPROC']
     fname=os.path.join(fdir,'CALIBMAT',ctyp,stn)
 
 
@@ -671,7 +666,7 @@ def toutliers(stn):
     """
 
     # file to read
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','OUTLIERS')
+    fname=os.path.join(os.environ['STRAINPROC'],'OUTLIERS')
     fname=os.path.join(fname,stn)
     
     # initialize list
@@ -700,7 +695,7 @@ def pbostationlist():
     """
 
     # file name
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','METADATA')
+    fname=os.path.join(os.environ['STRAINPROC'],'METADATA')
     fname=os.path.join(fname,'bsm_metadata.txt')
 
     # read 
@@ -726,7 +721,7 @@ def pbometadata(stn):
     """
 
     # file name
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','METADATA')
+    fname=os.path.join(os.environ['STRAINPROC'],'METADATA')
     fname=os.path.join(fname,'bsm_metadata.txt')
 
     # read 
@@ -822,8 +817,8 @@ def readcorrstrain(stn,chn=None,apnd='-100'):
     if isinstance(chn,str):
         chn = [chn]
 
-    # directory to write to
-    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','PROCESSED')
+    # directory to read from
+    fdir = os.path.join(os.environ['STRAINPROC'],'PROCESSED')
 
     # initialize the waveforms
     st = obspy.Stream()
@@ -845,13 +840,18 @@ def readcorrstrain(stn,chn=None,apnd='-100'):
 def writestrain(st,apnd):
     """
     write the data to sac files
+    fills gaps with 999999
     :param   st:  waveforms
     :param apnd:  label to append to file name
     """
 
     # directory to write to
-    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','PROCESSED')
-    fdir = '/scratch/Dropbox/TOSHARE/Mohamed/DATA'
+    fdir = os.path.join(os.environ['STRAINPROC'],'PROCESSED')
+
+    # create diretory if it doesn't exist
+    if not os.path.exists(fdir):
+        print('Creating directory for data: '+fdir)
+        os.makedirs(fdir)
 
     for tr in st:
         # file name
@@ -862,8 +862,7 @@ def writestrain(st,apnd):
             tri=tr.copy()
             msk=tri.data.mask
             tri.data=tri.data.data
-            #tri.data[msk]=999999
-            tri.data[msk]=-12345
+            tri.data[msk]=999999
         else:
             tri=tr
 
@@ -875,25 +874,10 @@ def writestrain(st,apnd):
 
         # write
         tri.write(nm,format='SAC')
+        print('Wrote file '+nm)
 
     return
 
-
-
-
-def centcascstat():
-    """
-    :return   stns:  a list of stations
-    """
-    
-    # file
-    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','METADATA')
-    fname = os.path.join(fdir,'centcascstat')
-    
-    # read
-    stns = np.loadtxt(fname,dtype=str)
-
-    return stns
 
 def localstat(loc='centcasc'):
     """
@@ -907,11 +891,14 @@ def localstat(loc='centcasc'):
         loc = 'centcasc'
 
     # file
-    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','METADATA')
+    fdir = os.path.join(os.environ['STRAINPROC'],'METADATA')
     fname = os.path.join(fdir,loc+'stat')
     
-    # read
-    stns = np.loadtxt(fname,dtype=str)
+    if os.path.exists(fname):
+        # read
+        stns = np.loadtxt(fname,dtype=str)
+    else:
+        print('No list of stations: file '+fname+' not found')
 
     return stns
 

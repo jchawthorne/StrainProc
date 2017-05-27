@@ -250,8 +250,16 @@ def writecf(stn,cfn):
     :param   cfn:   the coefficient dictionary
     """
     
-    fl = os.environ['DATA']
-    fl = os.path.join(fl,'STRAINPROC','ATMCF','atmcf_'+stn)
+    # directory
+    fl = os.environ['STRAINPROC']
+    fl = os.path.join(fl,'ATMCF')
+
+    if not os.path.exists(fl):
+        print('Creating directory '+fl)
+        os.makedirs(fl)
+
+    # file
+    fl = os.path.join(fl,'atmcf_'+stn)
     fl = open(fl,'w')
     for ch in cfn.keys():
         fl.write(ch + ' : ')
@@ -266,27 +274,35 @@ def writecf(stn,cfn):
 def readcf(stn):
     """ 
     read the estimated atmospheric coefficients from a file
-    read from to $DATA/STRAINRPOC/ATMCF/atmcf_ stn
+    read from to $STRAINRPOC/ATMCF/atmcf_ stn
     :param   stn:  station
+    :return  cfn:  estimated coefficients
     """
-    fl = os.environ['DATA']
-    fl = os.path.join(fl,'STRAINPROC','ATMCF','atmcf_'+stn)
-    cfn = {}
-    fl = open(fl,'r')
-    for k in range(0,3):
-        l1 = fl.readline().strip()
-        l2 = fl.readline().strip()
 
-        if l1:
-            vls = l1.split(':')
-            ch = vls[0].strip()
-            ch2 = vls[1].strip().split(' ')
-            cfni = l2.strip().split(' ')
+    cfn = {}
+
+    fl = os.environ['STRAINPROC']
+    fl = os.path.join(fl,'ATMCF','atmcf_'+stn)
+
+    if os.path.exists(fl):
+        fl = open(fl,'r')
+        for k in range(0,3):
+            l1 = fl.readline().strip()
+            l2 = fl.readline().strip()
             
-            cfn[ch] = {}
-            for m in range(0,len(ch2)):
-                cfn[ch][ch2[m]] = float(cfni[m])
-    fl.close()
+            if l1:
+                vls = l1.split(':')
+                ch = vls[0].strip()
+                ch2 = vls[1].strip().split(' ')
+                cfni = l2.strip().split(' ')
+                
+                cfn[ch] = {}
+                for m in range(0,len(ch2)):
+                    cfn[ch][ch2[m]] = float(cfni[m])
+        fl.close()
+    else:
+        print('Could not find coefficient file '+fl)
+
 
     return cfn
 

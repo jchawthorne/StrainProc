@@ -21,8 +21,6 @@ def calibdata(stn='B014',cname='Hawthorne2'):
     fdir = os.path.environ['STRAINPROC']
     fname=os.path.join(fdir,'CALIBMAT',cname,'preferred_gages')
 
-    #fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-    #                   cname,'preferred_gages')
     fl = open(fname,'r')
     chfit=['G0','G1','G2','G3']
     for line in fl:
