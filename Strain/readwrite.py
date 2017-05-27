@@ -168,7 +168,7 @@ def qualtexttosac(stn=None):
         st = readqualtext(stn)
     
         # directory to write to
-        fdir = os.path.join(os.environ['DATA'],'STRAINPBO','QUALSAC')
+        fdir = os.path.join(os.environ['STRAINPROC'],'QUALSAC')
 
         for tr in st:
             fname='strainquality-'+tr.stats.station+'-'+tr.stats.channel+'.SAC'
@@ -316,6 +316,40 @@ def gagetolinstrain(st):
         tr.data[ix]=(np.divide(tr.data[ix]/1e+8,1-(tr.data[ix]/1e+8)) - 
                      (tri/1.e+8)/(1.-(tri/1.e+8)))*gp/diam
 
+def identqualfiles(stn,chn=None,usedb=False,tlm=None):
+    """
+    just gets a list of the files in $STRAINPROC/QUALSAC
+    named strainquality-station-chn.SAC
+    :param      stn:  station or stations
+    :param      chn:  list of channels
+    :return     fls:  list of relevant files
+    """
+
+    # channels for data
+    if chn is None:
+        chn=['DQG0','DQG1','DQG2','DQG3']
+
+    # needs to be a list
+    if isinstance(chn,str):
+        chn=[chn]
+
+    if isinstance(stn,str):
+        stn=[stn]
+
+    # directory
+    fdir = os.path.join(os.environ['STRAINPROC'],'QUALSAC')
+
+    # files
+    fls = []
+    for ch in chn:
+        for stni in stn:
+            fname='strainquality-'+stni+'-'+ch+'.SAC'
+            fls = fls+glob.glob(os.path.join(fdir,fname))
+
+    # could be repeats
+    fls = np.unique(fls)
+
+    return fls
 
 def identpbofiles(stn,chn=None,usedb=False,tlm=None):
     """
@@ -380,6 +414,10 @@ def readpbogagedata(stn,pfx='R',fls=None,chqual=True,tlm=None):
     :return    st:    waveforms
     """
 
+    # to allow any times
+    if tlm is None:
+        tlm=[obspy.UTCDateTime(1700,1,1),obspy.UTCDateTime(2999,1,1)]
+
     # channels for data
     chn=['S1','S2','S3','S4']
     for k in range(0,len(chn)):
@@ -390,15 +428,13 @@ def readpbogagedata(stn,pfx='R',fls=None,chqual=True,tlm=None):
     if fls is None:
         fls=identpbofiles(stn,chn=chn,usedb=True,tlm=tlm)
 
-
-
     # initialize waveforms
     st=obspy.Stream()
 
     # read files
     for fnm in fls:
         # read
-        sti = obspy.read(fnm)
+        sti = obspy.read(fnm,starttime=tlm[0],endtime=tlm[1])
         st.append(sti[0])
 
     # add a mask for problematic data
@@ -421,14 +457,17 @@ def readpbogagedata(stn,pfx='R',fls=None,chqual=True,tlm=None):
         # identify available files 
         if flsq is None:
             chq = ['DQG0','DQG1','DQG2','DQG3']
-            flsq=identpbofiles(stn,chn=chq,usedb=True)        
+            #flsq=identpbofiles(stn,chn=chq,usedb=True)        
+            flsq=identqualfiles(stn,chn=chq)
 
         # initialize waveforms
         stq=obspy.Stream()
 
         # read files
+        tbuf = 30*60.
         for fnm in flsq:
-            stq=stq+obspy.read(fnm)
+            stq=stq+obspy.read(fnm,starttime=tlm[0]-tbuf,
+                               endtime=tlm[1]+tbuf)
 
         # channels for quality indicators
         for tr in st:

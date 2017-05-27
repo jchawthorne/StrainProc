@@ -245,7 +245,7 @@ def idcovary(st,chn=None,flm=None,starttime=None,endtime=None):
 def writecf(stn,cfn):
     """
     write the estimated atmospheric coefficients to a file
-    written to $DATA/STRAINRPOC/ATMCF/atmcf_ stn
+    written to $DATA/STRAINPROC/ATMCF/atmcf_ stn
     :param   stn:   station---just for naming
     :param   cfn:   the coefficient dictionary
     """

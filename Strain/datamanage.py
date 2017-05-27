@@ -23,7 +23,7 @@ def addqualdata(stn='*',datab='pbostrain'):
     q = session.query(Waveform)
 
     # directory with data
-    fdir = os.path.join(os.environ['DATA'],'STRAINPBO','QUALSAC')
+    fdir = os.path.join(os.environ['STRAINPROC'],'QUALSAC')
     
     # create a temporary directory with copies of the data
     curdatai=os.environ['SDATA']
