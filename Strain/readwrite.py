@@ -36,10 +36,14 @@ def readcalib(stn,ctyp='HodgkinsonPBO'):
     """
 
     # file to read
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-                       ctyp,'calibmatwhead')
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-                       ctyp,stn)
+
+    # fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
+    #                    ctyp,'calibmatwhead')
+    # fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
+    #                    ctyp,stn)
+    fdir,trash=os.path.split(__file__)
+    fname=os.path.join(fdir,'CALIBMAT',ctyp,stn)
+
 
     fl=open(fname,'r')
 

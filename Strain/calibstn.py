@@ -18,8 +18,11 @@ def calibdata(stn='B014',cname='Hawthorne2'):
 
 
     # to print
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-                       cname,'preferred_gages')
+    fdir = os.path.environ['STRAINPROC']
+    fname=os.path.join(fdir,'CALIBMAT',cname,'preferred_gages')
+
+    #fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
+    #                   cname,'preferred_gages')
     fl = open(fname,'r')
     chfit=['G0','G1','G2','G3']
     for line in fl:
@@ -85,8 +88,9 @@ def calibdata(stn='B014',cname='Hawthorne2'):
     pch = typs
 
     # to print
-    fname=os.path.join(os.environ['DATA'],'STRAINPROC','CALIBMAT',
-                       cname,stn)
+    fdir = os.path.environ['STRAINPROC']
+    fname=os.path.join(fdir,'CALIBMAT',cname,stn)
+
     fl = open(fname,'w')
     fl.write(','.join(och)+'\n')
     fl.write(','.join(pch)+'\n')
