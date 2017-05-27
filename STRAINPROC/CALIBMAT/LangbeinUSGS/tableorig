@@ -1,0 +1,7 @@
+% azimuth of gauge 1, followed by three areal sensitivities C, then 3 shear sensitivities D
+SJT	  123.10   0.97	       0.52	0.81  1.44	    0.76    1.18
+DLT	  188.20   0.67	       0.66	1.21  1.31	    1.18    1.83
+EDT	  261.40   1.34	       0.82	0.93  1.48	    1.16    0.70
+PFT	  210.40   1.11	       1.85	1.41  2.01	    3.03    2.05
+FLT	  219.30   0.21	       1.27	0.50  1.36	    1.83    2.04
+GAT	  086.30   0.32	       1.15	0.18  0.60	    1.10    0.80
