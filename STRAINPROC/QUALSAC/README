@@ -1,0 +1,14 @@
+this is the strain quality data as checked and provided by UNAVCO,
+converted to SAC files
+or at least it's meant to be 
+there's always a possiblity I copied it wrong
+
+numbers are
+1: good
+2: bad
+3: missing
+4: interpolated
+
+instances where there was no quality indicator provided are labelled 4
+
+JCH, 27-5-2017
