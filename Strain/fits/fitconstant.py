@@ -1,7 +1,8 @@
+from . import fitdefault
 import numpy as np
 import obspy
 import os
-from . import fitdefault
+
 
 def updatedpar(*args,**kwargs):
     """

@@ -405,14 +405,16 @@ def correct(st,fpar,X,psfit=None,cls=None):
     return stc,stp
 
 
-def writetfreq(tfreq,stn):
+def writetfreq(tfreq,stn,subdir=''):
     """
     :param  tfreq:  dictionary of frequencies used
     :param    stn:  station
+    :param subdir:   a subdirectory to write to 
+                       (default:'', in main directory)
     """
 
     # directory
-    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','ATMCF')
+    fdir = os.path.join(os.environ['DATA'],'STRAINPROC','ATMCF',subdir)
     for ch in tfreq.keys():
         fname = 'tfreq_'+stn+'_'+ch
         fl = open(os.path.join(fdir,fname),'w')
@@ -476,7 +478,8 @@ def savefits(fpar,X,subdir='DEFAULT',replace=False):
 
     # save each channel separately
     chn=copy.copy(fpar['chfit'])
-    chn=copy.copy(X.keys())
+
+    chn=copy.copy(list(X.keys()))
 
     for ch in chn:
         # complete file name
@@ -492,11 +495,11 @@ def savefits(fpar,X,subdir='DEFAULT',replace=False):
                     k=k+1
                     fnamefpari,fnameXi=fnamefpar+'-'+str(k),fnameX+'-'+str(k)
                 fnamefpar,fnameX=fnamefpari,fnameXi
-            
+  
         # write to files
-        with open(fnamefpar,'w') as fl:
+        with open(fnamefpar,'wb') as fl:
             pickle.dump(fpar,fl)
-        with open(fnameX,'w') as fl:
+        with open(fnameX,'wb') as fl:
             pickle.dump(X[ch],fl)
 
             
@@ -524,18 +527,20 @@ def loadfits(stn='unknown',chn=None,subdir='DEFAULT',sfx=''):
         fnamefpar=os.path.join(fdir,stn+'-'+ch+'-fpar'+sfx)
         fnameX=os.path.join(fdir,stn+'-'+ch+'-X'+sfx)
 
-        with open(fnamefpar,'r') as fl:
+        with open(fnamefpar,'rb') as fl:
             # just keep replacing fpar
             fpar=pickle.load(fl)
-        with open(fnameX,'r') as fl:
+        with open(fnameX,'rb') as fl:
             X[ch]=pickle.load(fl)
 
     # replace the channels
     fpar['chfit']=chn
 
     # replace the frequencies and decay constants if desired
-    fpar['tfreq']={}
-    fpar['expdec']={}
+    if np.sum(['tfreq' in X[ch].keys() for ch in X.keys()]):
+        fpar['tfreq']={}
+    if np.sum(['expdec' in X[ch].keys() for ch in X.keys()]):
+        fpar['expdec']={}
     for ch in chn:
         if 'tfreq' in X[ch].keys():
             fpar['tfreq'][ch] = X[ch]['tfreq']

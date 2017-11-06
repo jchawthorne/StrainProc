@@ -1,5 +1,5 @@
 import os,glob
-import general
+from . import genproc
 import numpy as np
 import obspy
 import time,datetime
@@ -261,7 +261,7 @@ def readqualtext(stn,cmps=['gauge0','gauge1','gauge2','gauge3']):
                     
                     # time spacing
                     dtim=np.median(np.diff(tdf))
-                    dtim=general.roundsigfigs(dtim,6)
+                    dtim=genproc.roundsigfigs(dtim,6)
                     tr.stats.delta = dtim
                     tr.stats.starttime=tms[0]
                     tr.data = qual[0:1]
@@ -271,7 +271,7 @@ def readqualtext(stn,cmps=['gauge0','gauge1','gauge2','gauge3']):
                 # add times
                 nadd = int(np.round((tms[-1]-tr.stats.endtime)/dtim))
                 tint = (tr.stats.endtime-tms[0])+np.arange(1.,nadd+1.)*dtim
-                ii = general.closest(tdf,tint)
+                ii = genproc.closest(tdf,tint)
                 qual = np.ma.masked_array(qual[ii],mask=np.abs(tdf[ii]-tint)>dtim)
 
                 tr.data = np.append(tr.data,qual)
@@ -313,7 +313,9 @@ def gagetolinstrain(st):
         
         # shift
         ix=tr.data!=999999
-        tr.data[ix]=(np.divide(tr.data[ix]/1e+8,1-(tr.data[ix]/1e+8)) - 
+        if isinstance(tr.data,np.ma.masked_array):
+            ix=np.logical_and(ix,~tr.data.mask)
+        tr.data[ix]=(np.divide(tr.data[ix]/1.e+8,1.-(tr.data[ix]/1.e+8)) - 
                      (tri/1.e+8)/(1.-(tri/1.e+8)))*gp/diam
 
 def identqualfiles(stn,chn=None,usedb=False,tlm=None):
@@ -369,25 +371,23 @@ def identpbofiles(stn,chn=None,usedb=False,tlm=None):
         chn=[chn]
 
     if usedb:
-        import pisces
-        import databseis
-        from piscestables import Waveform
+        import waveformdb
+        from waveformtable import Waveform
 
         # get basic values
-        session = databseis.opendatabase('pbostrain')
+        session = waveformdb.opendatabase('pbostrain')
         q = session.query(Waveform)
         q = q.filter(Waveform.sta==stn)
         q = q.filter(Waveform.net=='PB')
 
         if tlm:
-            q = q.filter(Waveform.time<=tlm[1])
+            q = q.filter(Waveform.starttime<=tlm[1])
             q = q.filter(Waveform.endtime>=tlm[0])
 
         fls = []
         for ch in chn:
             qq = q.filter(Waveform.chan==ch)
-            flsi = [os.path.join(wv.dir,wv.dfile) for
-                    wv in qq]
+            flsi = [wv.filename() for wv in qq]
             fls = fls+flsi
 
         session.close()
@@ -422,7 +422,6 @@ def readpbogagedata(stn,pfx='R',fls=None,chqual=True,tlm=None):
     chn=['S1','S2','S3','S4']
     for k in range(0,len(chn)):
         chn[k]=pfx+chn[k]
-
 
     # identify available files 
     if fls is None:
@@ -722,7 +721,7 @@ def toutliers(stn):
         
     # shape
     tdel=np.array(tdel)
-    tdel=tdel.reshape(2,len(tdel)/2)
+    tdel=tdel.reshape(2,int(len(tdel)/2))
 
     return tdel
 
@@ -835,10 +834,10 @@ def delints(tr,tdel):
             
             tdel=np.atleast_2d(tdel)
             if tdel.size:
-                tdel=tdel.reshape([tdel.size/2,2])
+                tdel=tdel.reshape([int(tdel.size/2),2])
             
             # go through and find times
-            for k in range(0,tdel.size/2):
+            for k in range(0,int(tdel.size/2)):
                 ih=np.logical_and(tim>=tdel[k,0],tim<=tdel[k,1])
                 tr.data.mask=np.logical_or(tr.data.mask,ih)
 

@@ -1,11 +1,5 @@
-import readwrite
-import fits 
-import calibstn
-import projcomp
-import prepdata
-import toplot
-
-__all__ = ["readwrite","fits","calibstn","projcomp","prepdata","toplot"]
+__all__ = ["readwrite","fits","calibstn","projcomp","prepdata",
+           "datamanage","toplot","genproc","tides"]
 
 # include the capability to calculate predicted strain with Okada?
 # requires okada_wrapper from Ben Thompson
@@ -13,13 +7,16 @@ __all__ = ["readwrite","fits","calibstn","projcomp","prepdata","toplot"]
 incpred = False
 
 if incpred:
-    import predict
+    from . import predict
     __all__.append("predict")
 
+from . import tides
+from . import genproc
+from . import calibstn
+from . import readwrite
+from . import projcomp
+from . import fits 
+from . import datamanage
+from . import toplot
+from . import prepdata
 
-# include codes to retrieve and organize data
-incdata = False
-
-if incdata:
-    import datamanage
-    __all__.append("datamanage")

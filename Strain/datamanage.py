@@ -1,11 +1,11 @@
 import os,glob
 import shutil
 import numpy as np
-import datarequests
-import databseis
 import obspy
 import datetime
-from piscestables import Waveform
+import datarequests
+import waveformdb
+from waveformtable import Waveform
 
 
 def addqualdata(stn='*',datab='pbostrain'):
@@ -19,7 +19,7 @@ def addqualdata(stn='*',datab='pbostrain'):
         stn = [stn]
 
     # open the relevant database
-    session = databseis.opendatabase(datab)
+    session = waveformdb.opendatabase(datab)
     q = session.query(Waveform)
 
     # directory with data
@@ -65,7 +65,7 @@ def addqualdata(stn='*',datab='pbostrain'):
     session.close()
 
     # add the files to the database
-    databseis.allsort(datab=datab,fdirf=curdata,dlist=True)
+    waveformdb.allsort(datab=datab,fdirf=curdata,dlist=True)
 
     # delete the directory
     os.rmdir(curdata)

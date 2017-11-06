@@ -1,17 +1,17 @@
 import Strain
-import tides
+from . import tides
 import numpy as np
 import os
 import obspy
 
 def calibdata(stn='B014',cname='Hawthorne2'):
-    """
-    :param    stn:  station
+    '''
+    :param    stn:  station 
     :param  cname:  directory to save the results in
     :return    Ci:  coupling matrix
     :return   och:  observation channels
     :return   pch:  resulting channels
-    """
+    '''
 
     # read the data
     st=Strain.readwrite.read(stn,calib=None)

@@ -1,80 +1,85 @@
 import os
 import numpy.ma as ma
-import tides
+from . import tides
 import math
 import matplotlib.pyplot as plt
 import numpy as np
 import obspy
 import multiprocessing
-import Strain
+from . import fits,readwrite,projcomp
 
-def prepdata(stn,dvar=100.):
+
+def prepdata(stn,dvar=100.,delfreq=True):
 
     print(stn)
     # directory to write the fits to
-    subdir='TIDES-SNR'
+    if delfreq:
+        subdir='TIDES-SNR-BOOT'
+    else:
+        subdir='TIDES-SNR-NOBOOT'
+    print(subdir)
     
     # note or set the preferred calibration
-    clb=Strain.readwrite.defcalib(stn)
+    clb=readwrite.defcalib(stn)
 
     # read the data
-    st=Strain.readwrite.read(stn,calib=clb)
+    st=readwrite.read(stn,calib=clb)
     
     # remove a long-term trend and exponential
     fpar = {'fitlinear':True,'fitconstant':True,'fitexp':True,
             'flm':np.array([0,float('inf')]),'expdec':300,
             'expdeclim':np.array([30,3000])}
     #fpar['chfit']=['E-N']
-    X,Xb=Strain.fits.fits.fit(st,fpar=fpar)
+    X,Xb=fits.fits.fit(st,fpar=fpar)
 
     # write fits to a file
-    Strain.fits.fits.savefits(fpar,X,replace=True,subdir='LONGTERM')
-    st,stp=Strain.fits.fits.correct(st,fpar,X)
+    fits.fits.savefits(fpar,X,replace=True,subdir='LONGTERM')
+    st,stp=fits.fits.correct(st,fpar,X)
 
     # fit parameters
-    fp = {'fittides':True,'fitatm':True,'delfreq':True,'fitdaily':0,
-          'fitdailyvar':0,'tidespec':'snr','tidepar':0.5,
+    fp = {'fittides':True,'fitatm':True,'delfreq':delfreq,'fitdaily':0,
+          'dailyvar':0,'tidespec':'snr','tidepar':0.5,
           'flm':np.array([0.5,6])/86400}
 
     # daily variation?
     if dvar:
         fp['fitdaily']=1
-        fp['fitdailyvar']=dvar
+        fp['dailyvar']=dvar
         
     # fits and corrections
     print('Original fits and corrections')
     fpar=fp.copy()
-    X,Xb=Strain.fits.fits.fit(st,fpar=fpar)
-    stc,stp=Strain.fits.fits.correct(st,fpar=fpar,X=X)
+    X,Xb=fits.fits.fit(st,fpar=fpar)
+    stc,stp=fits.fits.correct(st,fpar=fpar,X=X)
 
     # write fits and corrected data to a file
-    Strain.fits.fits.savefits(fpar,X,replace=True,subdir=subdir)
+    fits.fits.savefits(fpar,X,replace=True,subdir=subdir)
     lbl = '-'+str(int(dvar))
-    Strain.readwrite.writestrain(stc.select(channel='*E*'),'-corr'+lbl)
+    readwrite.writestrain(stc.select(channel='*E*'),'-corr'+lbl)
 
     # get non-atmospheric components
     print('Identify non-atmospheric components')
-    cfn,cfnst,cfnsto = Strain.projcomp.nonatm(X)
-    sta = Strain.projcomp.newch(st,cfnst)+st.select(channel='RDO')
+    cfn,cfnst,cfnsto = projcomp.nonatm(X)
+    sta = projcomp.newch(st,cfnst)+st.select(channel='RDO')
 
     # write to a file for later
-    Strain.projcomp.writecf(st[0].stats.station,cfn)
+    projcomp.writecf(st[0].stats.station,cfn,subdir)
 
     # fits for non-atmospheric components
     print('Non-atmospheric fits and corrections')
     fpara=fp.copy()
     fpara['fitatm']=False
-    Xa,Xba=Strain.fits.fits.fit(sta,fpar=fpara)
-    stca,stp=Strain.fits.fits.correct(sta,fpar=fpara,X=Xa)
+    Xa,Xba=fits.fits.fit(sta,fpar=fpara)
+    stca,stp=fits.fits.correct(sta,fpar=fpara,X=Xa)
     
     # write fits and corrected data to a file
-    Strain.fits.fits.savefits(fpara,Xa,replace=True,subdir=subdir)
+    fits.fits.savefits(fpara,Xa,replace=True,subdir=subdir)
     lbl = '-'+str(int(dvar))
-    Strain.readwrite.writestrain(stca.select(channel='*E*'),'-corr'+lbl)
+    readwrite.writestrain(stca.select(channel='*E*'),'-corr'+lbl)
 
     # write the tidal frequencies used
-    Strain.fits.fits.writetfreq(fpar['tfreq'],stn)
-    Strain.fits.fits.writetfreq(fpara['tfreq'],stn)
+    fits.fits.writetfreq(fpar['tfreq'],stn,subdir)
+    fits.fits.writetfreq(fpara['tfreq'],stn,subdir)
 
     #print('Plot daily')
     #Xap = {'E-N-na':Xa['E-N-na'],'2EN-na':Xa['2EN-na'],'E+N':X['E+N']}
@@ -83,29 +88,30 @@ def prepdata(stn,dvar=100.):
     print('Finding covariance in corrected components')
     flm=np.array([1./5.,24./6.])/86400.
     chcv=['E-N-na','2EN-na']
-    Xcf,frc=Strain.projcomp.idcovary(stca,chn=chcv,flm=flm)
+    Xcf,frc=projcomp.idcovary(stca,chn=chcv,flm=flm)
     
     # from original coefficients
-    cfv=Strain.projcomp.multcf(cfn,Xcf)
-    stv=Strain.projcomp.newch(st,cfv)+st.select(channel='RDO')    
+    cfv=projcomp.multcf(cfn,Xcf)
+    stv=projcomp.newch(st,cfv)+st.select(channel='RDO')    
     
     print('Fits for low-covariance components')
     fparv=fp.copy()
     fparv['fitatm']=False
     fparv['chfit']=cfv.keys()
-    Xv,Xbv=Strain.fits.fits.fit(stv,fpar=fparv)
-    stcv,stp=Strain.fits.fits.correct(stv,fpar=fparv,X=Xv)
+    Xv,Xbv=fits.fits.fit(stv,fpar=fparv)
+    stcv,stp=fits.fits.correct(stv,fpar=fparv,X=Xv)
 
     # write strain, tidal frequencies, coefficients
-    Strain.fits.fits.savefits(fparv,Xv,replace=True,subdir=subdir)
-    Strain.readwrite.writestrain(stcv.select(channel='*CV*'),'-corr'+lbl)    
-    Strain.projcomp.writecf(st[0].stats.station+'-CV',cfv)
-    Strain.fits.fits.writetfreq(fparv['tfreq'],stn)
+    fits.fits.savefits(fparv,Xv,replace=True,subdir=subdir)
+    readwrite.writestrain(stcv.select(channel='*CV*'),'-corr'+lbl)    
+    projcomp.writecf(st[0].stats.station+'-CV',cfv,subdir)
+    fits.fits.writetfreq(fparv['tfreq'],stn,subdir)
 
 def runall(stns=None):
     if stns is None:
         # for some stations
-        stns = Strain.readwrite.centcascstat()
+        stns = readwrite.localstat(loc='centcasc')
+        #stns = readwrite.centcascstat()
         stns.sort()
 
     # open pool
