@@ -1,3 +1,5 @@
-to get access to the right files, you'll need to have set 
-the environmental variable STRAINPROC to the directory  STRAINPROC here,
-or to wherever you move that directory to
+These are some codes to read in, manipulate, and remove surface signals from strain data.
+
+All of the Python files to process the strain data are in the Strain directory.  
+
+The codes assume that there is an environmental variable named STRAINPROC that leads to a directory containing a number of parameters, such as saved calibrations, corrections, and gage metadata.  The codes will read from files in that directory and, if you ask them to, save the correction parameters to that directory.  I've included a directory STRAINPROC here with some of the necessary parameters.  To be able to run many of the codes, you'll need to have set the environmental variable STRAINPROC to the relevant STRAINPROC directory, wherever you move that to on your computer.
