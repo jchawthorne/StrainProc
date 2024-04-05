@@ -1,7 +1,7 @@
-These are some codes to read in, manipulate, and remove surface signals from strain data.
+These are some codes to read in, manipulate, and remove surface signals from strain data.  Note, however, that they are not intended for further use---we have new codes in development.  These codes are only available to illustrate the processing used by Gittins and Hawthorne, 2024 to analyse strain associated with creep events on the San Andreas Fault.
 
 All of the Python files are in the StrainProc directory.  
 
 You'll also need an environmental variable named STRAINPROC.
 
-STRAINPRC should leads to a directory containing a number of parameters, such as saved calibrations, corrections, and gage metadata.  The codes will read from files in that directory and save the correction parameters to that directory.  I've included a directory STRAINPROC here with some of the necessary parameters, including some published calibrations (Roeloffs, 2010 and Hodgkinson et al, 2013).
+STRAINPROC should leads to a directory containing a number of parameters, such as saved calibrations, corrections, and gage metadata.  The codes will read from files in that directory and save the correction parameters to that directory.  I've included a directory STRAINPROC here with some of the necessary parameters, including some published calibrations (Roeloffs, 2010 and Hodgkinson et al, 2013).
